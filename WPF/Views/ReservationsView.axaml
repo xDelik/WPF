@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WPF.ViewModels"
+             xmlns:viewModels="clr-namespace:WPF.ViewModels"
+             x:Class="WPF.Views.ReservationsView"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="*,Auto,*">
+
+        <DockPanel Grid.Column="0" Margin="0,0,8,0">
+            <TextBlock DockPanel.Dock="Top" Text="Reservations" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+            <DataGrid ItemsSource="{Binding Reservations}"
+                      SelectedItem="{Binding SelectedReservation}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      CanUserResizeColumns="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Room" Binding="{Binding Room.Number}" Width="70"/>
+                    <DataGridTextColumn Header="Guest" Binding="{Binding Guest.FullName}" Width="130"/>
+                    <DataGridTextColumn Header="Check-In" Binding="{Binding CheckInDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
+                    <DataGridTextColumn Header="Check-Out" Binding="{Binding CheckOutDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
+                    <DataGridTextColumn Header="Nights" Binding="{Binding Nights}" Width="55"/>
+                    <DataGridTextColumn Header="Total" Binding="{Binding TotalPrice, StringFormat={}{0:F2}}" Width="80"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+
+
+        <Border Grid.Column="2" Margin="8,0,0,0" Padding="16" CornerRadius="8"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Reservation Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
+                    <Button Content="Add New" Command="{Binding AddReservationCommand}" Classes="accent"/>
+                    <Button Content="Edit" Command="{Binding EditReservationCommand}"/>
+                    <Button Content="Save" Command="{Binding SaveReservationCommand}"/>
+                    <Button Content="Delete" Command="{Binding DeleteReservationCommand}"/>
+                </StackPanel>
+
+                <ScrollViewer>
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Room"/>
+                            <ComboBox ItemsSource="{Binding Rooms}" SelectedItem="{Binding ReservationRoom}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Guest"/>
+                            <ComboBox ItemsSource="{Binding Guests}" SelectedItem="{Binding ReservationGuest}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Check-In Date"/>
+                            <DatePicker SelectedDate="{Binding ReservationCheckIn}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Check-Out Date"/>
+                            <DatePicker SelectedDate="{Binding ReservationCheckOut}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Status"/>
+                            <ComboBox ItemsSource="{Binding ReservationStatuses}" SelectedItem="{Binding ReservationStatus}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Notes"/>
+                            <TextBox Text="{Binding ReservationNotes}" Watermark="Additional notes..." AcceptsReturn="True" MinHeight="60"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

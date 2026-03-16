@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WPF.ViewModels"
+             x:Class="WPF.Views.RoomsView"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="*,Auto,*">
+        <DockPanel Grid.Column="0" Margin="0,0,8,0">
+            <TextBlock DockPanel.Dock="Top" Text="Rooms" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+            <DataGrid ItemsSource="{Binding Rooms}"
+                      SelectedItem="{Binding SelectedRoom}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      CanUserResizeColumns="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Number" Binding="{Binding Number}" Width="70"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80"/>
+                    <DataGridTextColumn Header="Floor" Binding="{Binding Floor}" Width="50"/>
+                    <DataGridTextColumn Header="Price/Night" Binding="{Binding PricePerNight, StringFormat={}{0:F2}}" Width="90"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+
+        <Border Grid.Column="2" Margin="8,0,0,0" Padding="16" CornerRadius="8"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Room Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
+                    <Button Content="Add New" Command="{Binding AddRoomCommand}" Classes="accent"/>
+                    <Button Content="Edit" Command="{Binding EditRoomCommand}"/>
+                    <Button Content="Save" Command="{Binding SaveRoomCommand}"/>
+                    <Button Content="Delete" Command="{Binding DeleteRoomCommand}"/>
+                </StackPanel>
+
+                <ScrollViewer>
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Room Number"/>
+                            <TextBox Text="{Binding RoomNumber}" Watermark="e.g. 101"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Type"/>
+                            <ComboBox ItemsSource="{Binding RoomTypes}" SelectedItem="{Binding RoomType}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Floor"/>
+                            <NumericUpDown Value="{Binding RoomFloor}" Minimum="0" Maximum="50" FormatString="0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Price per Night"/>
+                            <NumericUpDown Value="{Binding RoomPrice}" Minimum="0" Maximum="10000" FormatString="F2" Increment="10"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Status"/>
+                            <ComboBox ItemsSource="{Binding RoomStatuses}" SelectedItem="{Binding RoomStatus}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

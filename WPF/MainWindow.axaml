@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WPF.ViewModels"
+        xmlns:views="using:WPF.Views"
+        x:Class="WPF.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Hotel Management System"
+        Width="1100" Height="700"
+        MinWidth="900" MinHeight="550"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+
+        <Border DockPanel.Dock="Top" Padding="16,12"
+                Background="{DynamicResource SystemAccentColor}">
+            <TextBlock Text="Hotel Management System" FontSize="22" FontWeight="Bold"
+                       Foreground="White"/>
+        </Border>
+
+
+        <TabControl Margin="12" Padding="8">
+            <TabItem Header="Rooms">
+                <views:RoomsView Margin="0,8,0,0"/>
+            </TabItem>
+            <TabItem Header="Guests">
+                <views:GuestsView Margin="0,8,0,0"/>
+            </TabItem>
+            <TabItem Header="Reservations">
+                <views:ReservationsView Margin="0,8,0,0"/>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>
