@@ -24,13 +24,13 @@
 
         <TabControl Margin="12" Padding="8">
             <TabItem Header="Rooms">
-                <views:RoomsView Margin="0,8,0,0"/>
+                <views:RoomsView Margin="0,8,0,0" DataContext="{Binding RoomsVm}"/>
             </TabItem>
             <TabItem Header="Guests">
-                <views:GuestsView Margin="0,8,0,0"/>
+                <views:GuestsView Margin="0,8,0,0" DataContext="{Binding GuestsVm}"/>
             </TabItem>
             <TabItem Header="Reservations">
-                <views:ReservationsView Margin="0,8,0,0"/>
+                <views:ReservationsView Margin="0,8,0,0" DataContext="{Binding ReservationsVm}"/>
             </TabItem>
         </TabControl>
     </DockPanel>

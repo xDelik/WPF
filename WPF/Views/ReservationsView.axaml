@@ -1,12 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:WPF.ViewModels"
-             xmlns:viewModels="clr-namespace:WPF.ViewModels"
              x:Class="WPF.Views.ReservationsView"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:ReservationsViewModel">
 
     <Design.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:ReservationsViewModel/>
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto,*">
@@ -33,15 +32,14 @@
 
         <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
 
-
         <Border Grid.Column="2" Margin="8,0,0,0" Padding="16" CornerRadius="8"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" Text="Reservation Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
+                    <Button Content="Clear" Command="{Binding ClearCommand}"/>
                     <Button Content="Add New" Command="{Binding AddReservationCommand}" Classes="accent"/>
-                    <Button Content="Edit" Command="{Binding EditReservationCommand}"/>
                     <Button Content="Save" Command="{Binding SaveReservationCommand}"/>
                     <Button Content="Delete" Command="{Binding DeleteReservationCommand}"/>
                 </StackPanel>

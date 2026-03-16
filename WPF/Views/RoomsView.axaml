@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:WPF.ViewModels"
              x:Class="WPF.Views.RoomsView"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:RoomsViewModel">
 
     <Design.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:RoomsViewModel/>
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto,*">
@@ -35,8 +35,8 @@
                 <TextBlock DockPanel.Dock="Top" Text="Room Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
+                    <Button Content="Clear" Command="{Binding ClearCommand}"/>
                     <Button Content="Add New" Command="{Binding AddRoomCommand}" Classes="accent"/>
-                    <Button Content="Edit" Command="{Binding EditRoomCommand}"/>
                     <Button Content="Save" Command="{Binding SaveRoomCommand}"/>
                     <Button Content="Delete" Command="{Binding DeleteRoomCommand}"/>
                 </StackPanel>
