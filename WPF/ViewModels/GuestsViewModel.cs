@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
@@ -45,9 +46,9 @@ public partial class GuestsViewModel : FormViewModel
 
     [ObservableProperty] private string _guestDocumentNumber = string.Empty;
 
-    public GuestsViewModel() : this([]) { }
+    public GuestsViewModel() : this([], () => { }) { }
 
-    public GuestsViewModel(IReadOnlyCollection<Reservation> reservations)
+    public GuestsViewModel(IReadOnlyCollection<Reservation> reservations, Action save) : base(save)
     {
         _reservations = reservations;
     }
@@ -59,7 +60,7 @@ public partial class GuestsViewModel : FormViewModel
     {
         ErrorMessage = null;
         ValidateAllProperties();
-        if (HasErrors) return false;
+        if (HasErrors) return Fail("Please correct the highlighted fields.");
 
         Guests.Add(new Guest
         {
@@ -70,6 +71,7 @@ public partial class GuestsViewModel : FormViewModel
             Email = GuestEmail,
             DocumentNumber = GuestDocumentNumber
         });
+        Save();
         ClearForm();
         return true;
     }
@@ -82,13 +84,14 @@ public partial class GuestsViewModel : FormViewModel
         if (SelectedGuest is null) return false;
         ErrorMessage = null;
         ValidateAllProperties();
-        if (HasErrors) return false;
+        if (HasErrors) return Fail("Please correct the highlighted fields.");
 
         SelectedGuest.FirstName = GuestFirstName;
         SelectedGuest.LastName = GuestLastName;
         SelectedGuest.Phone = GuestPhone;
         SelectedGuest.Email = GuestEmail;
         SelectedGuest.DocumentNumber = GuestDocumentNumber;
+        Save();
         ClearForm();
         return true;
     }
@@ -112,6 +115,7 @@ public partial class GuestsViewModel : FormViewModel
         if (await box.ShowAsync() != ButtonResult.Yes) return false;
 
         Guests.Remove(SelectedGuest);
+        Save();
         ClearForm();
         return true;
     }

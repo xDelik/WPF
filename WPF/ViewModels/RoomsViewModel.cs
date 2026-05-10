@@ -49,9 +49,9 @@ public partial class RoomsViewModel : FormViewModel
     public static RoomType[] RoomTypes => Enum.GetValues<RoomType>();
     public static RoomStatus[] RoomStatuses => Enum.GetValues<RoomStatus>();
 
-    public RoomsViewModel() : this([]) { }
+    public RoomsViewModel() : this([], () => { }) { }
 
-    public RoomsViewModel(IReadOnlyCollection<Reservation> reservations)
+    public RoomsViewModel(IReadOnlyCollection<Reservation> reservations, Action save) : base(save)
     {
         _reservations = reservations;
     }
@@ -74,6 +74,7 @@ public partial class RoomsViewModel : FormViewModel
             PricePerNight = RoomPrice,
             Status = RoomStatus
         });
+        Save();
         ClearForm();
         return true;
     }
@@ -93,6 +94,7 @@ public partial class RoomsViewModel : FormViewModel
         SelectedRoom.Floor = RoomFloor;
         SelectedRoom.PricePerNight = RoomPrice;
         SelectedRoom.Status = RoomStatus;
+        Save();
         ClearForm();
         return true;
     }
@@ -126,6 +128,7 @@ public partial class RoomsViewModel : FormViewModel
         if (await box.ShowAsync() != ButtonResult.Yes) return false;
 
         Rooms.Remove(SelectedRoom);
+        Save();
         ClearForm();
         return true;
     }

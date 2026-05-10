@@ -2,25 +2,58 @@ using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using WPF.Models;
+using WPF.Persistence;
 
 namespace WPF.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
+    private readonly HotelStore _store = new();
+
     public RoomsViewModel RoomsVm { get; }
     public GuestsViewModel GuestsVm { get; }
     public ReservationsViewModel ReservationsVm { get; }
 
     public MainWindowViewModel()
     {
+        Console.WriteLine($"[Persistence] {_store.Path}");
+
         var reservations = new ObservableCollection<Reservation>();
-        RoomsVm = new RoomsViewModel(reservations);
-        GuestsVm = new GuestsViewModel(reservations);
-        ReservationsVm = new ReservationsViewModel(RoomsVm.Rooms, GuestsVm.Guests, reservations);
-        LoadTestData();
+        RoomsVm = new RoomsViewModel(reservations, Save);
+        GuestsVm = new GuestsViewModel(reservations, Save);
+        ReservationsVm = new ReservationsViewModel(RoomsVm.Rooms, GuestsVm.Guests, reservations, Save);
+
+        LoadOrSeed();
     }
 
-    private void LoadTestData()
+    private void LoadOrSeed()
+    {
+        var data = _store.Load();
+        if (data is null)
+        {
+            SeedDefaultData();
+            Save();
+            return;
+        }
+
+        foreach (var r in data.Rooms) RoomsVm.Rooms.Add(r);
+        foreach (var g in data.Guests) GuestsVm.Guests.Add(g);
+        foreach (var r in data.Reservations) ReservationsVm.Reservations.Add(r);
+    }
+
+    private void Save()
+    {
+        try
+        {
+            _store.Save(RoomsVm.Rooms, GuestsVm.Guests, ReservationsVm.Reservations);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Persistence] Save failed: {ex}");
+        }
+    }
+
+    private void SeedDefaultData()
     {
         var r101 = new Room { Id = 1, Number = "101", Type = RoomType.Single, Floor = 1, PricePerNight = 150, Status = RoomStatus.Available };
         var r102 = new Room { Id = 2, Number = "102", Type = RoomType.Double, Floor = 1, PricePerNight = 250, Status = RoomStatus.Occupied };

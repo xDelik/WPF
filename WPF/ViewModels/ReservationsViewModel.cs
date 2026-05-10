@@ -39,17 +39,19 @@ public partial class ReservationsViewModel : FormViewModel
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(ReservationsViewModel), nameof(ValidateCheckOut))]
     private DateTimeOffset _reservationCheckOut = DateTimeOffset.Now.Date.AddDays(1);
+
     [ObservableProperty] private ReservationStatus _reservationStatus;
     [ObservableProperty] private string _reservationNotes = string.Empty;
 
     public static ReservationStatus[] ReservationStatuses => Enum.GetValues<ReservationStatus>();
 
-    public ReservationsViewModel() : this([], [], []) { }
+    public ReservationsViewModel() : this([], [], [], () => { }) { }
 
     public ReservationsViewModel(
         ObservableCollection<Room> rooms,
         ObservableCollection<Guest> guests,
-        ObservableCollection<Reservation> reservations)
+        ObservableCollection<Reservation> reservations,
+        Action save) : base(save)
     {
         Rooms = rooms;
         Guests = guests;
@@ -76,6 +78,7 @@ public partial class ReservationsViewModel : FormViewModel
             Status = ReservationStatus,
             Notes = ReservationNotes
         });
+        Save();
         ClearForm();
         return true;
     }
@@ -96,6 +99,7 @@ public partial class ReservationsViewModel : FormViewModel
         SelectedReservation.CheckOutDate = ReservationCheckOut;
         SelectedReservation.Status = ReservationStatus;
         SelectedReservation.Notes = ReservationNotes;
+        Save();
         ClearForm();
         return true;
     }
@@ -140,6 +144,7 @@ public partial class ReservationsViewModel : FormViewModel
         if (await box.ShowAsync() != ButtonResult.Yes) return false;
 
         Reservations.Remove(SelectedReservation);
+        Save();
         ClearForm();
         return true;
     }
