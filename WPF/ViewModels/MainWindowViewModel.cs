@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using WPF.Models;
 
@@ -6,13 +7,16 @@ namespace WPF.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    public RoomsViewModel RoomsVm { get; } = new();
-    public GuestsViewModel GuestsVm { get; } = new();
+    public RoomsViewModel RoomsVm { get; }
+    public GuestsViewModel GuestsVm { get; }
     public ReservationsViewModel ReservationsVm { get; }
 
     public MainWindowViewModel()
     {
-        ReservationsVm = new ReservationsViewModel(RoomsVm.Rooms, GuestsVm.Guests);
+        var reservations = new ObservableCollection<Reservation>();
+        RoomsVm = new RoomsViewModel(reservations);
+        GuestsVm = new GuestsViewModel(reservations);
+        ReservationsVm = new ReservationsViewModel(RoomsVm.Rooms, GuestsVm.Guests, reservations);
         LoadTestData();
     }
 

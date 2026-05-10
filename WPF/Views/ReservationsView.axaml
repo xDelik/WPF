@@ -37,6 +37,12 @@
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" Text="Reservation Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
+                <Border DockPanel.Dock="Top" BorderBrush="#E74C3C" BorderThickness="1"
+                        CornerRadius="4" Padding="8,6" Margin="0,0,0,8"
+                        IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#E74C3C" TextWrapping="Wrap"/>
+                </Border>
+
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
                     <Button Content="Clear" Command="{Binding ClearCommand}"/>
                     <Button Content="Add New" Command="{Binding AddReservationCommand}" Classes="accent"/>

@@ -1,8 +1,31 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="WPF.App">
+    <Application.Resources>
+        <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="#E74C3C"/>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
+        <Style Selector="TextBox:error /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#E74C3C"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="NumericUpDown:error /template/ ButtonSpinner /template/ Border">
+            <Setter Property="BorderBrush" Value="#E74C3C"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="DatePicker:error /template/ Button#PART_FlyoutButton">
+            <Setter Property="BorderBrush" Value="#E74C3C"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="ComboBox:error /template/ Border#Background">
+            <Setter Property="BorderBrush" Value="#E74C3C"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
     </Application.Styles>
 </Application>
