@@ -23,7 +23,12 @@ public partial class GuestsViewModel : FormViewModel
     [NotifyCanExecuteChangedFor(nameof(SaveGuestCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteGuestCommand))]
     [NotifyCanExecuteChangedFor(nameof(AddGuestCommand))]
+    [NotifyPropertyChangedFor(nameof(IsAddMode))]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
     private Guest? _selectedGuest;
+
+    public bool IsAddMode => IsDrawerOpen && SelectedGuest is null;
+    public bool IsEditMode => IsDrawerOpen && SelectedGuest is not null;
 
     [ObservableProperty]
     [NotifyDataErrorInfo]
@@ -46,11 +51,59 @@ public partial class GuestsViewModel : FormViewModel
 
     [ObservableProperty] private string _guestDocumentNumber = string.Empty;
 
-    public GuestsViewModel() : this([], () => { }) { }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAddMode))]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    private bool _isDrawerOpen;
+    [ObservableProperty] private string _searchText = string.Empty;
 
-    public GuestsViewModel(IReadOnlyCollection<Reservation> reservations, Action save) : base(save)
+    partial void OnSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredGuests));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    public IEnumerable<Guest> FilteredGuests
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(SearchText)) return Guests;
+            var s = SearchText;
+            return Guests.Where(g =>
+                (g.FirstName + " " + g.LastName).Contains(s, StringComparison.OrdinalIgnoreCase) ||
+                g.Email.Contains(s, StringComparison.OrdinalIgnoreCase) ||
+                g.DocumentNumber.Contains(s, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    public bool IsListEmpty => !FilteredGuests.Any();
+
+    public GuestsViewModel() : this([], () => { }, new NullNotificationService()) { }
+
+    public GuestsViewModel(IReadOnlyCollection<Reservation> reservations, Action save, INotificationService notifier)
+        : base(save, notifier)
     {
         _reservations = reservations;
+        Guests.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(FilteredGuests));
+            OnPropertyChanged(nameof(IsListEmpty));
+        };
+    }
+
+    [RelayCommand]
+    private void OpenAddDrawer()
+    {
+        SelectedGuest = null;
+        ClearForm();
+        IsDrawerOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseDrawer()
+    {
+        IsDrawerOpen = false;
+        ClearForm();
     }
 
     [RelayCommand(CanExecute = nameof(CanAddGuest))]
@@ -72,6 +125,8 @@ public partial class GuestsViewModel : FormViewModel
             DocumentNumber = GuestDocumentNumber
         });
         Save();
+        Notify($"Guest {GuestFirstName} {GuestLastName} added.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -92,6 +147,8 @@ public partial class GuestsViewModel : FormViewModel
         SelectedGuest.Email = GuestEmail;
         SelectedGuest.DocumentNumber = GuestDocumentNumber;
         Save();
+        Notify($"Guest {GuestFirstName} {GuestLastName} updated.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -114,8 +171,11 @@ public partial class GuestsViewModel : FormViewModel
             Icon.Warning);
         if (await box.ShowAsync() != ButtonResult.Yes) return false;
 
+        var name = SelectedGuest.FullName;
         Guests.Remove(SelectedGuest);
         Save();
+        Notify($"Guest {name} deleted.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -137,6 +197,7 @@ public partial class GuestsViewModel : FormViewModel
         GuestPhone = value.Phone;
         GuestEmail = value.Email;
         GuestDocumentNumber = value.DocumentNumber;
+        IsDrawerOpen = true;
     }
 
     private void ClearForm()

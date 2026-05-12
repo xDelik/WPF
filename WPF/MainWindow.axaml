@@ -1,7 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:WPF.ViewModels"
-        xmlns:views="using:WPF.Views"
         x:Class="WPF.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Hotel Management System"
@@ -13,25 +12,114 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <DockPanel>
+    <Panel>
+        <Grid RowDefinitions="40,*" Background="{DynamicResource CanvasBrush}">
 
-        <Border DockPanel.Dock="Top" Padding="16,12"
-                Background="{DynamicResource SystemAccentColor}">
-            <TextBlock Text="Hotel Management System" FontSize="22" FontWeight="Bold"
-                       Foreground="White"/>
-        </Border>
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="6,6,6,0">
+                <Button Grid.Column="0" Command="{Binding ToggleSidebarCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="10,4"
+                        Foreground="{DynamicResource TextMidBrush}">
+                    <Path Classes="icon" Data="{StaticResource IconMenu}" Width="20" Height="20"/>
+                </Button>
+                <TextBlock Grid.Column="1" Text="Hotel Management System" VerticalAlignment="Center"
+                           Margin="8,0,0,0" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextHighBrush}"/>
+            </Grid>
 
+            <SplitView Grid.Row="1"
+                       IsPaneOpen="{Binding IsSidebarOpen}"
+                       DisplayMode="CompactInline"
+                       OpenPaneLength="200"
+                       CompactPaneLength="60"
+                       PaneBackground="{DynamicResource CanvasBrush}"
+                       Background="{DynamicResource CanvasBrush}">
 
-        <TabControl Margin="12" Padding="8">
-            <TabItem Header="Rooms">
-                <views:RoomsView Margin="0,8,0,0" DataContext="{Binding RoomsVm}"/>
-            </TabItem>
-            <TabItem Header="Guests">
-                <views:GuestsView Margin="0,8,0,0" DataContext="{Binding GuestsVm}"/>
-            </TabItem>
-            <TabItem Header="Reservations">
-                <views:ReservationsView Margin="0,8,0,0" DataContext="{Binding ReservationsVm}"/>
-            </TabItem>
-        </TabControl>
-    </DockPanel>
+                <SplitView.Pane>
+                    <Border Background="{DynamicResource CanvasBrush}" CornerRadius="10" Margin="4">
+                        <StackPanel Margin="0,8" Spacing="2">
+                            <RadioButton GroupName="Nav" Classes="nav"
+                                         IsChecked="{Binding SelectedPage, Converter={x:Static vm:AppPageConverter.Dashboard}}"
+                                         Command="{Binding SelectPageCommand}" CommandParameter="{x:Static vm:AppPage.Dashboard}">
+                                <Grid ColumnDefinitions="28,*">
+                                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconLayoutDashboard}" Width="18" Height="18"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="Dashboard" VerticalAlignment="Center"
+                                               IsVisible="{Binding $parent[Window].DataContext.IsSidebarOpen}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton GroupName="Nav" Classes="nav"
+                                         IsChecked="{Binding SelectedPage, Converter={x:Static vm:AppPageConverter.Rooms}}"
+                                         Command="{Binding SelectPageCommand}" CommandParameter="{x:Static vm:AppPage.Rooms}">
+                                <Grid ColumnDefinitions="28,*">
+                                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconDoorClosed}" Width="18" Height="18"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="Rooms" VerticalAlignment="Center"
+                                               IsVisible="{Binding $parent[Window].DataContext.IsSidebarOpen}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton GroupName="Nav" Classes="nav"
+                                         IsChecked="{Binding SelectedPage, Converter={x:Static vm:AppPageConverter.Guests}}"
+                                         Command="{Binding SelectPageCommand}" CommandParameter="{x:Static vm:AppPage.Guests}">
+                                <Grid ColumnDefinitions="28,*">
+                                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconUsersRound}" Width="18" Height="18"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="Guests" VerticalAlignment="Center"
+                                               IsVisible="{Binding $parent[Window].DataContext.IsSidebarOpen}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton GroupName="Nav" Classes="nav"
+                                         IsChecked="{Binding SelectedPage, Converter={x:Static vm:AppPageConverter.Reservations}}"
+                                         Command="{Binding SelectPageCommand}" CommandParameter="{x:Static vm:AppPage.Reservations}">
+                                <Grid ColumnDefinitions="28,*">
+                                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconCalendar}" Width="18" Height="18"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="Reservations" VerticalAlignment="Center"
+                                               IsVisible="{Binding $parent[Window].DataContext.IsSidebarOpen}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton GroupName="Nav" Classes="nav"
+                                         IsChecked="{Binding SelectedPage, Converter={x:Static vm:AppPageConverter.Calendar}}"
+                                         Command="{Binding SelectPageCommand}" CommandParameter="{x:Static vm:AppPage.Calendar}">
+                                <Grid ColumnDefinitions="28,*">
+                                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconCalendar}" Width="18" Height="18"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="Calendar" VerticalAlignment="Center"
+                                               IsVisible="{Binding $parent[Window].DataContext.IsSidebarOpen}"/>
+                                </Grid>
+                            </RadioButton>
+                        </StackPanel>
+                    </Border>
+                </SplitView.Pane>
+
+                <Border Background="{DynamicResource IslandBrush}" CornerRadius="10" Margin="0,6,6,6">
+                    <ContentControl Content="{Binding CurrentPage}" Margin="16"/>
+                </Border>
+            </SplitView>
+
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Notifier.Toasts}"
+                      HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                      Margin="0,0,16,16">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource CanvasBrush}" CornerRadius="8"
+                            Padding="12,8" Margin="0,4,0,0"
+                            BoxShadow="0 4 16 0 #80000000">
+                        <Border.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                            </Transitions>
+                        </Border.Transitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Path Classes="icon" Data="{StaticResource IconCircleCheck}" Width="16" Height="16"
+                                  Stroke="{DynamicResource MintBrush}"/>
+                            <TextBlock Text="{Binding Message}"
+                                       Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Panel>
 </Window>

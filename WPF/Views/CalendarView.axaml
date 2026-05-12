@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WPF.ViewModels"
+             x:Class="WPF.Views.CalendarView"
+             x:DataType="vm:CalendarViewModel">
+    <Design.DataContext>
+        <vm:CalendarViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <TextBlock Grid.Column="0" Text="{Binding WindowLabel}" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <Button Command="{Binding PrevCommand}" MinWidth="48" Height="32"
+                        VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+                    <Path Classes="icon" Data="{StaticResource IconChevronLeft}" Width="14" Height="14"
+                          VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+                <Button Content="Today" Command="{Binding TodayCommand}" Height="32"
+                        VerticalContentAlignment="Center"/>
+                <Button Command="{Binding NextCommand}" MinWidth="48" Height="32"
+                        VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+                    <Path Classes="icon" Data="{StaticResource IconChevronRight}" Width="14" Height="14"
+                          VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding DayHeaders}" Margin="64,0,0,4">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" Columns="14"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding ., StringFormat={}{0:ddd}}" FontSize="10"
+                                   Foreground="{DynamicResource TextLowBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ., StringFormat={}{0:dd}}"
+                                   Foreground="{DynamicResource TextMidBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="64,*" Height="32" Margin="0,1">
+                            <TextBlock Grid.Column="0" Text="{Binding Room.Number}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0"
+                                       Foreground="{DynamicResource TextHighBrush}"/>
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.ColumnSpan="14" Background="{DynamicResource SubtleSurfaceBrush}" CornerRadius="4"/>
+                                <ItemsControl ItemsSource="{Binding Cells}" Grid.ColumnSpan="14">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><UniformGrid Rows="1" Columns="14"/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Background="Transparent" BorderThickness="0" Margin="1"
+                                                    Command="{Binding $parent[UserControl].DataContext.OpenEmptyCellCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ItemsControl ItemsSource="{Binding Bars}" Grid.ColumnSpan="14">
+                                    <ItemsControl.Styles>
+                                        <Style Selector="ItemsControl > ContentPresenter">
+                                            <Setter Property="Grid.Column" Value="{Binding StartColumn}"/>
+                                            <Setter Property="Grid.ColumnSpan" Value="{Binding SpanColumns}"/>
+                                        </Style>
+                                    </ItemsControl.Styles>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                            </Grid>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding $parent[UserControl].DataContext.OpenReservationCommand}"
+                                                    CommandParameter="{Binding Reservation}"
+                                                    Background="{DynamicResource SelectedNavBrush}"
+                                                    BorderBrush="{DynamicResource AccentBrush}"
+                                                    BorderThickness="2,0,0,0"
+                                                    CornerRadius="3"
+                                                    Padding="6,0"
+                                                    Margin="1"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Left"
+                                                    Foreground="{DynamicResource TextHighBrush}">
+                                                <TextBlock Text="{Binding Reservation.Guest.FullName}" FontSize="11"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

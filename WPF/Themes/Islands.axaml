@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="CanvasBrush" Color="#2B2D30"/>
+    <SolidColorBrush x:Key="IslandBrush" Color="#1E1F22"/>
+    <SolidColorBrush x:Key="SubtleSurfaceBrush" Color="#26282C"/>
+    <SolidColorBrush x:Key="RowLiftBrush" Color="#33353B"/>
+    <SolidColorBrush x:Key="SelectedNavBrush" Color="#2E436E"/>
+    <SolidColorBrush x:Key="PrimaryActionBrush" Color="#3574F0"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#6C95EB"/>
+    <SolidColorBrush x:Key="MintBrush" Color="#7DF0C0"/>
+    <SolidColorBrush x:Key="FaintBorderBrush" Color="#393B40"/>
+    <SolidColorBrush x:Key="TextHighBrush" Color="#C6CACD"/>
+    <SolidColorBrush x:Key="TextMidBrush" Color="#9DA0A8"/>
+    <SolidColorBrush x:Key="TextLowBrush" Color="#787878"/>
+
+    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#2B2D30"/>
+    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#1E1F22"/>
+    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#191A1C"/>
+    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#C6CACD"/>
+    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#9DA0A8"/>
+    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumLowBrush" Color="#787878"/>
+    <Color x:Key="SystemAccentColor">#2E436E</Color>
+
+</ResourceDictionary>

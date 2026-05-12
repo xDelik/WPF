@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="WPF.Controls.StatusBadge">
+    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+        <Ellipse Width="6" Height="6" Fill="{Binding $parent[UserControl].DotBrush}"
+                 VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding $parent[UserControl].Label}"
+                   Foreground="{DynamicResource TextMidBrush}" VerticalAlignment="Center"/>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,130 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WPF.ViewModels"
+             x:Class="WPF.Views.ReservationWizardView"
+             x:DataType="vm:ReservationWizardViewModel">
+    <Design.DataContext>
+        <vm:ReservationWizardViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <TextBlock Grid.Column="0" Text="New reservation" FontSize="16" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextHighBrush}"/>
+            <Button Grid.Column="1" Command="{Binding CancelCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    Foreground="{DynamicResource TextLowBrush}">
+                <Path Classes="icon" Data="{StaticResource IconCircleX}" Width="16" Height="16"
+                      Stroke="{DynamicResource TextLowBrush}"/>
+            </Button>
+        </Grid>
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,*,*" Margin="0,0,0,4">
+            <Border Grid.Column="0" Height="3" CornerRadius="2" Margin="0,0,2,0"
+                    Background="{Binding IsDates, Converter={x:Static vm:BoolToBrushConverter.AccentOrFaint}}"/>
+            <Border Grid.Column="1" Height="3" CornerRadius="2" Margin="2,0,2,0"
+                    Background="{Binding IsRoom, Converter={x:Static vm:BoolToBrushConverter.AccentOrFaint}}"/>
+            <Border Grid.Column="2" Height="3" CornerRadius="2" Margin="2,0,0,0"
+                    Background="{Binding IsGuestAndReview, Converter={x:Static vm:BoolToBrushConverter.AccentOrFaint}}"/>
+        </Grid>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Command="{Binding BackCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Path Classes="icon" Data="{StaticResource IconArrowLeft}" Width="14" Height="14"/>
+                    <TextBlock Text="Back" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding NextCommand}" Classes="accent" IsVisible="{Binding !IsGuestAndReview}">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="Next" VerticalAlignment="Center"/>
+                    <Path Classes="icon" Data="{StaticResource IconArrowRight}" Width="14" Height="14"
+                          Stroke="{DynamicResource TextHighBrush}"/>
+                </StackPanel>
+            </Button>
+            <Button Content="Create" Command="{Binding FinishCommand}" Classes="accent"
+                    IsVisible="{Binding IsGuestAndReview}"/>
+        </StackPanel>
+
+        <ScrollViewer>
+            <StackPanel Spacing="12">
+
+                <StackPanel Spacing="8" IsVisible="{Binding IsDates}">
+                    <TextBlock Text="When?" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextHighBrush}"/>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Check-in"/>
+                        <DatePicker SelectedDate="{Binding CheckIn}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Check-out"/>
+                        <DatePicker SelectedDate="{Binding CheckOut}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                    <TextBlock Foreground="{DynamicResource MintBrush}">
+                        <Run Text="{Binding Nights}"/><Run Text=" nights"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Spacing="8" IsVisible="{Binding IsRoom}">
+                    <TextBlock Text="Available rooms" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextHighBrush}"/>
+                    <ListBox ItemsSource="{Binding AvailableRooms}"
+                             SelectedItem="{Binding SelectedRoomOption}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2"
+                                      Opacity="{Binding IsAvailable, Converter={x:Static vm:BoolToOpacity.Visible}}"
+                                      IsEnabled="{Binding IsAvailable}">
+                                    <TextBlock Grid.Column="0">
+                                        <Run Text="{Binding Room.Number}"/>
+                                        <Run Text=" · "/><Run Text="{Binding Room.Type}"/>
+                                        <Run Text=" · Floor "/><Run Text="{Binding Room.Floor}"/>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="1" Text="{Binding Room.PricePerNight, StringFormat={}{0:F0}/n}"
+                                               Foreground="{DynamicResource TextLowBrush}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <StackPanel Spacing="8" IsVisible="{Binding IsGuestAndReview}">
+                    <TextBlock Text="Guest" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextHighBrush}"/>
+                    <ComboBox ItemsSource="{Binding Guests}" SelectedItem="{Binding SelectedGuest}"
+                              HorizontalAlignment="Stretch"/>
+                    <Button Content="+ Add new guest" Command="{Binding AddNewGuestCommand}"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Left"/>
+
+                    <TextBlock Text="Notes"/>
+                    <TextBox Text="{Binding Notes}" AcceptsReturn="True" MinHeight="60"/>
+
+                    <Border Background="{DynamicResource SubtleSurfaceBrush}" CornerRadius="6" Padding="10,8" Margin="0,8,0,0">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="SUMMARY" FontSize="9"
+                                       Foreground="{DynamicResource TextLowBrush}"/>
+                            <TextBlock Foreground="{DynamicResource TextHighBrush}">
+                                <Run Text="Room "/><Run Text="{Binding SelectedRoom.Number}"/>
+                                <Run Text=" · "/><Run Text="{Binding SelectedGuest.FullName}"/>
+                            </TextBlock>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Foreground="{DynamicResource TextMidBrush}">
+                                    <Run Text="{Binding CheckIn, StringFormat={}{0:dd MMM}}"/>
+                                    <Run Text=" → "/>
+                                    <Run Text="{Binding CheckOut, StringFormat={}{0:dd MMM}}"/>
+                                    <Run Text=" · "/><Run Text="{Binding Nights}"/><Run Text=" nights"/>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Foreground="{DynamicResource MintBrush}" FontWeight="SemiBold">
+                                    <Run Text="{Binding Total, StringFormat={}{0:F2} PLN}"/>
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

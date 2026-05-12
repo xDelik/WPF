@@ -1,9 +1,37 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WPF.ViewModels"
+             xmlns:views="using:WPF.Views"
              x:Class="WPF.App">
     <Application.Resources>
-        <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="#E74C3C"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://WPF/Themes/Islands.axaml"/>
+                <ResourceInclude Source="avares://WPF/Themes/Icons.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="#E74C3C"/>
+        </ResourceDictionary>
     </Application.Resources>
+    <Application.DataTemplates>
+        <DataTemplate DataType="{x:Type vm:RoomsViewModel}">
+            <views:RoomsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:GuestsViewModel}">
+            <views:GuestsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ReservationsViewModel}">
+            <views:ReservationsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CalendarViewModel}">
+            <views:CalendarView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ReservationWizardViewModel}">
+            <views:ReservationWizardView/>
+        </DataTemplate>
+    </Application.DataTemplates>
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
@@ -26,6 +54,96 @@
         <Style Selector="ComboBox:error /template/ Border#Background">
             <Setter Property="BorderBrush" Value="#E74C3C"/>
             <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="RadioButton.nav">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Background" Value="{DynamicResource SubtleSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMidBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="PART_Border" Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.nav:checked">
+            <Setter Property="Background" Value="{DynamicResource SelectedNavBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+        </Style>
+        <Style Selector="RadioButton.nav:checked /template/ Border#PART_Border">
+            <Setter Property="BorderThickness" Value="2,0,0,0"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryActionBrush}"/>
+        </Style>
+        <Style Selector="RadioButton.nav:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource RowLiftBrush}"/>
+        </Style>
+
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="{DynamicResource PrimaryActionBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style Selector="RadioButton.chip">
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource FaintBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMidBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.chip:checked">
+            <Setter Property="Background" Value="{DynamicResource RowLiftBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryActionBrush}"/>
+        </Style>
+
+        <Style Selector="Path.icon">
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="Stroke" Value="{DynamicResource TextMidBrush}"/>
+            <Setter Property="StrokeThickness" Value="1.6"/>
+            <Setter Property="StrokeLineCap" Value="Round"/>
+            <Setter Property="StrokeJoin" Value="Round"/>
+        </Style>
+
+        <Style Selector="DataGrid">
+            <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource FaintBorderBrush}"/>
+            <Setter Property="RowHeight" Value="28"/>
+        </Style>
+
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource IslandBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMidBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource FaintBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+
+        <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+            <Setter Property="Fill" Value="{DynamicResource RowLiftBrush}"/>
         </Style>
     </Application.Styles>
 </Application>

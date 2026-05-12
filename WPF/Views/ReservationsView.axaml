@@ -8,81 +8,149 @@
         <vm:ReservationsViewModel/>
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="*,Auto,*">
+    <Grid>
+        <DockPanel>
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,6">
+                <TextBlock Grid.Column="0" Text="Reservations" FontSize="18" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+                <Grid Grid.Column="1" ColumnDefinitions="Auto,*" Margin="16,0" MaxWidth="320" HorizontalAlignment="Stretch">
+                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                          Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Text="{Binding SearchText}" Watermark="Search guest or room…" HorizontalAlignment="Stretch"/>
+                </Grid>
+                <Button Grid.Column="2" Content="+ Add" Command="{Binding OpenAddDrawerCommand}"
+                        Classes="accent"/>
+            </Grid>
 
-        <DockPanel Grid.Column="0" Margin="0,0,8,0">
-            <TextBlock DockPanel.Dock="Top" Text="Reservations" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
-            <DataGrid ItemsSource="{Binding Reservations}"
-                      SelectedItem="{Binding SelectedReservation}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      GridLinesVisibility="Horizontal"
-                      CanUserResizeColumns="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Room" Binding="{Binding Room.Number}" Width="70"/>
-                    <DataGridTextColumn Header="Guest" Binding="{Binding Guest.FullName}" Width="130"/>
-                    <DataGridTextColumn Header="Check-In" Binding="{Binding CheckInDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
-                    <DataGridTextColumn Header="Check-Out" Binding="{Binding CheckOutDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
-                    <DataGridTextColumn Header="Nights" Binding="{Binding Nights}" Width="55"/>
-                    <DataGridTextColumn Header="Total" Binding="{Binding TotalPrice, StringFormat={}{0:F2}}" Width="80"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+                <Path Classes="icon" Data="{StaticResource IconListFilter}" Width="14" Height="14"
+                      VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <RadioButton GroupName="StatusFilter" Classes="chip" Content="All" IsChecked="True" Click="OnFilterAll"/>
+                <RadioButton GroupName="StatusFilter" Classes="chip" Content="Confirmed" Click="OnFilterConfirmed"/>
+                <RadioButton GroupName="StatusFilter" Classes="chip" Content="Cancelled" Click="OnFilterCancelled"/>
+                <RadioButton GroupName="StatusFilter" Classes="chip" Content="Completed" Click="OnFilterCompleted"/>
+            </StackPanel>
+
+            <Panel>
+                <DataGrid ItemsSource="{Binding FilteredReservations}"
+                          SelectedItem="{Binding SelectedReservation}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserSortColumns="True"
+                          GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Room" Binding="{Binding Room.Number}" Width="80"
+                                            SortMemberPath="Room.Number"/>
+                        <DataGridTextColumn Header="Guest" Binding="{Binding Guest.FullName}" Width="180"
+                                            SortMemberPath="Guest.LastName"/>
+                        <DataGridTextColumn Header="Check-In"
+                                            Binding="{Binding CheckInDate, StringFormat={}{0:yyyy-MM-dd}}"
+                                            Width="120" SortMemberPath="CheckInDate"/>
+                        <DataGridTextColumn Header="Check-Out"
+                                            Binding="{Binding CheckOutDate, StringFormat={}{0:yyyy-MM-dd}}"
+                                            Width="120" SortMemberPath="CheckOutDate"/>
+                        <DataGridTextColumn Header="Nights" Binding="{Binding Nights}" Width="70"
+                                            SortMemberPath="Nights"/>
+                        <DataGridTextColumn Header="Total"
+                                            Binding="{Binding TotalPrice, StringFormat={}{0:F2}}"
+                                            Width="100" SortMemberPath="TotalPrice"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*"
+                                            SortMemberPath="Status"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock IsVisible="{Binding IsListEmpty}"
+                           Text="No reservations match your filters."
+                           Foreground="{DynamicResource TextLowBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Panel>
         </DockPanel>
 
-        <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+        <Border IsVisible="{Binding IsDrawerOpen}"
+                HorizontalAlignment="Right"
+                Width="420"
+                Background="{DynamicResource CanvasBrush}"
+                CornerRadius="10"
+                BoxShadow="-8 0 24 0 #80000000">
+            <Border.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.18"/>
+                </Transitions>
+            </Border.Transitions>
+            <DockPanel Margin="16">
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                    <TextBlock Grid.Column="0" Text="Reservation details" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextHighBrush}"/>
+                    <Button Grid.Column="1" Command="{Binding CloseDrawerCommand}"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{DynamicResource TextLowBrush}">
+                        <Path Classes="icon" Data="{StaticResource IconCircleX}" Width="16" Height="16"
+                              Stroke="{DynamicResource TextLowBrush}"/>
+                    </Button>
+                </Grid>
 
-        <Border Grid.Column="2" Margin="8,0,0,0" Padding="16" CornerRadius="8"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Reservation Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right"
+                            Spacing="8" Margin="0,16,0,0"
+                            IsVisible="{Binding !IsWizardMode}">
+                    <Button Content="Delete" Command="{Binding DeleteReservationCommand}"
+                            IsVisible="{Binding IsEditMode}"/>
+                    <Button Content="Save" Command="{Binding SaveReservationCommand}" Classes="accent"
+                            IsVisible="{Binding IsEditMode}"/>
+                </StackPanel>
 
-                <Border DockPanel.Dock="Top" BorderBrush="#E74C3C" BorderThickness="1"
-                        CornerRadius="4" Padding="8,6" Margin="0,0,0,8"
-                        IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        BorderBrush="#E74C3C" BorderThickness="1" CornerRadius="4"
+                        Padding="8,6" Margin="0,0,0,8">
                     <TextBlock Text="{Binding ErrorMessage}" Foreground="#E74C3C" TextWrapping="Wrap"/>
                 </Border>
 
-                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
-                    <Button Content="Clear" Command="{Binding ClearCommand}"/>
-                    <Button Content="Add New" Command="{Binding AddReservationCommand}" Classes="accent"/>
-                    <Button Content="Save" Command="{Binding SaveReservationCommand}"/>
-                    <Button Content="Delete" Command="{Binding DeleteReservationCommand}"/>
-                </StackPanel>
-
-                <ScrollViewer>
-                    <StackPanel Spacing="12">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Room"/>
-                            <ComboBox ItemsSource="{Binding Rooms}" SelectedItem="{Binding ReservationRoom}" HorizontalAlignment="Stretch"/>
+                <Panel>
+                    <ContentControl Content="{Binding Wizard}"
+                                    IsVisible="{Binding IsWizardMode}"/>
+                    <ScrollViewer IsVisible="{Binding !IsWizardMode}">
+                        <StackPanel Spacing="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Room"/>
+                                <ComboBox ItemsSource="{Binding Rooms}" SelectedItem="{Binding ReservationRoom}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Guest"/>
+                                <ComboBox ItemsSource="{Binding Guests}" SelectedItem="{Binding ReservationGuest}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Check-In Date"/>
+                                <DatePicker SelectedDate="{Binding ReservationCheckIn}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Check-Out Date"/>
+                                <DatePicker SelectedDate="{Binding ReservationCheckOut}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Status"/>
+                                <ComboBox ItemsSource="{Binding ReservationStatuses}" SelectedItem="{Binding ReservationStatus}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Notes"/>
+                                <TextBox Text="{Binding ReservationNotes}" Watermark="Additional notes..."
+                                         AcceptsReturn="True" MinHeight="60"/>
+                            </StackPanel>
+                            <Border Background="{DynamicResource SubtleSurfaceBrush}" CornerRadius="6" Padding="10,8" Margin="0,12,0,0">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0">
+                                        <Run Text="Nights: "/><Run Text="{Binding FormNights}" FontWeight="SemiBold"/>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Right">
+                                        <Run Text="Total: "/><Run Text="{Binding FormTotal, StringFormat={}{0:F2} PLN}" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource MintBrush}"/>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
                         </StackPanel>
-
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Guest"/>
-                            <ComboBox ItemsSource="{Binding Guests}" SelectedItem="{Binding ReservationGuest}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Check-In Date"/>
-                            <DatePicker SelectedDate="{Binding ReservationCheckIn}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Check-Out Date"/>
-                            <DatePicker SelectedDate="{Binding ReservationCheckOut}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Status"/>
-                            <ComboBox ItemsSource="{Binding ReservationStatuses}" SelectedItem="{Binding ReservationStatus}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Notes"/>
-                            <TextBox Text="{Binding ReservationNotes}" Watermark="Additional notes..." AcceptsReturn="True" MinHeight="60"/>
-                        </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
+                    </ScrollViewer>
+                </Panel>
             </DockPanel>
         </Border>
     </Grid>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -23,39 +24,155 @@ public partial class ReservationsViewModel : FormViewModel
     [NotifyCanExecuteChangedFor(nameof(SaveReservationCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteReservationCommand))]
     [NotifyCanExecuteChangedFor(nameof(AddReservationCommand))]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
     private Reservation? _selectedReservation;
+
+    public bool IsEditMode => IsDrawerOpen && !IsWizardMode && SelectedReservation is not null;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddReservationCommand))]
+    [NotifyPropertyChangedFor(nameof(FormTotal))]
     private Room? _reservationRoom;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddReservationCommand))]
     private Guest? _reservationGuest;
 
-    [ObservableProperty] private DateTimeOffset _reservationCheckIn = DateTimeOffset.Now.Date;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FormNights))]
+    [NotifyPropertyChangedFor(nameof(FormTotal))]
+    private DateTimeOffset _reservationCheckIn = DateTimeOffset.Now.Date;
 
     [ObservableProperty]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(ReservationsViewModel), nameof(ValidateCheckOut))]
+    [NotifyPropertyChangedFor(nameof(FormNights))]
+    [NotifyPropertyChangedFor(nameof(FormTotal))]
     private DateTimeOffset _reservationCheckOut = DateTimeOffset.Now.Date.AddDays(1);
+
+    public int FormNights => Math.Max(0, (ReservationCheckOut - ReservationCheckIn).Days);
+    public decimal FormTotal => ReservationRoom is null ? 0m : FormNights * ReservationRoom.PricePerNight;
 
     [ObservableProperty] private ReservationStatus _reservationStatus;
     [ObservableProperty] private string _reservationNotes = string.Empty;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    private bool _isDrawerOpen;
+    [ObservableProperty] private string _searchText = string.Empty;
+    [ObservableProperty] private ReservationStatus? _statusFilter;
+
+    partial void OnSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredReservations));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    partial void OnStatusFilterChanged(ReservationStatus? value)
+    {
+        OnPropertyChanged(nameof(FilteredReservations));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    public IEnumerable<Reservation> FilteredReservations
+    {
+        get
+        {
+            IEnumerable<Reservation> q = Reservations;
+            if (!string.IsNullOrWhiteSpace(SearchText))
+                q = q.Where(r => r.Guest.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                                 || r.Room.Number.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            if (StatusFilter is { } s)
+                q = q.Where(r => r.Status == s);
+            return q;
+        }
+    }
+
+    public bool IsListEmpty => !FilteredReservations.Any();
+
     public static ReservationStatus[] ReservationStatuses => Enum.GetValues<ReservationStatus>();
 
-    public ReservationsViewModel() : this([], [], [], () => { }) { }
+    private readonly Action _gotoGuestsPage;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWizardMode))]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    private ReservationWizardViewModel? _wizard;
+
+    public bool IsWizardMode => Wizard is not null;
+
+    public ReservationsViewModel() : this([], [], [], () => { }, new NullNotificationService(), () => { }) { }
 
     public ReservationsViewModel(
         ObservableCollection<Room> rooms,
         ObservableCollection<Guest> guests,
         ObservableCollection<Reservation> reservations,
-        Action save) : base(save)
+        Action save,
+        INotificationService notifier,
+        Action gotoGuestsPage) : base(save, notifier)
     {
         Rooms = rooms;
         Guests = guests;
         Reservations = reservations;
+        _gotoGuestsPage = gotoGuestsPage;
+        Reservations.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(FilteredReservations));
+            OnPropertyChanged(nameof(IsListEmpty));
+        };
+    }
+
+    [RelayCommand]
+    private void OpenAddDrawer()
+    {
+        SelectedReservation = null;
+        ClearForm();
+        Wizard = new ReservationWizardViewModel(
+            Rooms,
+            Guests,
+            Reservations,
+            AddFromWizard,
+            () => { Wizard = null; IsDrawerOpen = false; },
+            _gotoGuestsPage,
+            () => Save(),
+            GetNotifier());
+        IsDrawerOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseDrawer()
+    {
+        Wizard = null;
+        IsDrawerOpen = false;
+        ClearForm();
+    }
+
+    public void AddFromWizard(Reservation r)
+    {
+        Reservations.Add(r);
+        Save();
+        Notify($"Reservation for {r.Guest.FullName} created.");
+        Wizard = null;
+        IsDrawerOpen = false;
+    }
+
+    public void OpenWizardFor(Room room, DateTimeOffset checkIn)
+    {
+        SelectedReservation = null;
+        var wizard = new ReservationWizardViewModel(
+            Rooms, Guests, Reservations,
+            AddFromWizard,
+            () => { Wizard = null; IsDrawerOpen = false; },
+            _gotoGuestsPage,
+            () => Save(),
+            GetNotifier());
+        wizard.CheckIn = checkIn;
+        wizard.CheckOut = checkIn.AddDays(1);
+        wizard.SelectedRoomOption = wizard.AvailableRooms
+            .FirstOrDefault(o => o.Room.Id == room.Id);
+        wizard.Step = WizardStep.GuestAndReview;
+        Wizard = wizard;
+        IsDrawerOpen = true;
     }
 
     [RelayCommand(CanExecute = nameof(CanAddReservation))]
@@ -79,6 +196,8 @@ public partial class ReservationsViewModel : FormViewModel
             Notes = ReservationNotes
         });
         Save();
+        Notify($"Reservation for {ReservationGuest!.FullName} added.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -100,6 +219,8 @@ public partial class ReservationsViewModel : FormViewModel
         SelectedReservation.Status = ReservationStatus;
         SelectedReservation.Notes = ReservationNotes;
         Save();
+        Notify($"Reservation for {SelectedReservation.Guest.FullName} updated.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -143,8 +264,11 @@ public partial class ReservationsViewModel : FormViewModel
             Icon.Warning);
         if (await box.ShowAsync() != ButtonResult.Yes) return false;
 
+        var display = $"{SelectedReservation.Guest.FullName} · {SelectedReservation.Room.Number}";
         Reservations.Remove(SelectedReservation);
         Save();
+        Notify($"Reservation {display} deleted.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -166,6 +290,7 @@ public partial class ReservationsViewModel : FormViewModel
         ReservationCheckOut = value.CheckOutDate;
         ReservationStatus = value.Status;
         ReservationNotes = value.Notes;
+        IsDrawerOpen = true;
     }
 
     private void ClearForm()

@@ -23,7 +23,12 @@ public partial class RoomsViewModel : FormViewModel
     [NotifyCanExecuteChangedFor(nameof(SaveRoomCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteRoomCommand))]
     [NotifyCanExecuteChangedFor(nameof(AddRoomCommand))]
+    [NotifyPropertyChangedFor(nameof(IsAddMode))]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
     private Room? _selectedRoom;
+
+    public bool IsAddMode => IsDrawerOpen && SelectedRoom is null;
+    public bool IsEditMode => IsDrawerOpen && SelectedRoom is not null;
 
     [ObservableProperty]
     [NotifyDataErrorInfo]
@@ -46,14 +51,69 @@ public partial class RoomsViewModel : FormViewModel
 
     [ObservableProperty] private RoomStatus _roomStatus;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAddMode))]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    private bool _isDrawerOpen;
+    [ObservableProperty] private string _searchText = string.Empty;
+    [ObservableProperty] private RoomStatus? _statusFilter;
+
+    partial void OnSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredRooms));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    partial void OnStatusFilterChanged(RoomStatus? value)
+    {
+        OnPropertyChanged(nameof(FilteredRooms));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    public IEnumerable<Room> FilteredRooms
+    {
+        get
+        {
+            IEnumerable<Room> q = Rooms;
+            if (!string.IsNullOrWhiteSpace(SearchText))
+                q = q.Where(r => r.Number.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            if (StatusFilter is { } s)
+                q = q.Where(r => r.Status == s);
+            return q;
+        }
+    }
+
+    public bool IsListEmpty => !FilteredRooms.Any();
+
     public static RoomType[] RoomTypes => Enum.GetValues<RoomType>();
     public static RoomStatus[] RoomStatuses => Enum.GetValues<RoomStatus>();
 
-    public RoomsViewModel() : this([], () => { }) { }
+    public RoomsViewModel() : this([], () => { }, new NullNotificationService()) { }
 
-    public RoomsViewModel(IReadOnlyCollection<Reservation> reservations, Action save) : base(save)
+    public RoomsViewModel(IReadOnlyCollection<Reservation> reservations, Action save, INotificationService notifier)
+        : base(save, notifier)
     {
         _reservations = reservations;
+        Rooms.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(FilteredRooms));
+            OnPropertyChanged(nameof(IsListEmpty));
+        };
+    }
+
+    [RelayCommand]
+    private void OpenAddDrawer()
+    {
+        SelectedRoom = null;
+        ClearForm();
+        IsDrawerOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseDrawer()
+    {
+        IsDrawerOpen = false;
+        ClearForm();
     }
 
     [RelayCommand(CanExecute = nameof(CanAddRoom))]
@@ -75,6 +135,8 @@ public partial class RoomsViewModel : FormViewModel
             Status = RoomStatus
         });
         Save();
+        Notify($"Room {RoomNumber} added.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -95,6 +157,8 @@ public partial class RoomsViewModel : FormViewModel
         SelectedRoom.PricePerNight = RoomPrice;
         SelectedRoom.Status = RoomStatus;
         Save();
+        Notify($"Room {RoomNumber} updated.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -127,8 +191,11 @@ public partial class RoomsViewModel : FormViewModel
             Icon.Warning);
         if (await box.ShowAsync() != ButtonResult.Yes) return false;
 
+        var number = SelectedRoom.Number;
         Rooms.Remove(SelectedRoom);
         Save();
+        Notify($"Room {number} deleted.");
+        IsDrawerOpen = false;
         ClearForm();
         return true;
     }
@@ -147,6 +214,7 @@ public partial class RoomsViewModel : FormViewModel
         RoomFloor = value.Floor;
         RoomPrice = value.PricePerNight;
         RoomStatus = value.Status;
+        IsDrawerOpen = true;
     }
 
     private void ClearForm()

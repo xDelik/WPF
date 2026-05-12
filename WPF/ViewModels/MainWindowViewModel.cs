@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using WPF.Models;
 using WPF.Persistence;
+using WPF.Services;
 
 namespace WPF.ViewModels;
 
@@ -10,20 +12,71 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly HotelStore _store = new();
 
+    public INotificationService Notifier { get; } = new NotificationService();
+
     public RoomsViewModel RoomsVm { get; }
     public GuestsViewModel GuestsVm { get; }
     public ReservationsViewModel ReservationsVm { get; }
+    public DashboardViewModel DashboardVm { get; }
+    public CalendarViewModel CalendarVm { get; }
+
+    [ObservableProperty] private bool _isSidebarOpen = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CurrentPage))]
+    private AppPage _selectedPage = AppPage.Dashboard;
+
+    public object CurrentPage => SelectedPage switch
+    {
+        AppPage.Dashboard => DashboardVm,
+        AppPage.Rooms => RoomsVm,
+        AppPage.Guests => GuestsVm,
+        AppPage.Reservations => ReservationsVm,
+        AppPage.Calendar => CalendarVm,
+        _ => DashboardVm
+    };
+
+    [RelayCommand]
+    private void SelectPage(AppPage page) => SelectedPage = page;
+
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarOpen = !IsSidebarOpen;
 
     public MainWindowViewModel()
     {
         Console.WriteLine($"[Persistence] {_store.Path}");
 
         var reservations = new ObservableCollection<Reservation>();
-        RoomsVm = new RoomsViewModel(reservations, Save);
-        GuestsVm = new GuestsViewModel(reservations, Save);
-        ReservationsVm = new ReservationsViewModel(RoomsVm.Rooms, GuestsVm.Guests, reservations, Save);
+        RoomsVm = new RoomsViewModel(reservations, Save, Notifier);
+        GuestsVm = new GuestsViewModel(reservations, Save, Notifier);
+        ReservationsVm = new ReservationsViewModel(
+            RoomsVm.Rooms,
+            GuestsVm.Guests,
+            reservations,
+            Save,
+            Notifier,
+            gotoGuestsPage: () => SelectedPage = AppPage.Guests);
+
+        DashboardVm = new DashboardViewModel(RoomsVm.Rooms, GuestsVm.Guests, ReservationsVm.Reservations);
+        CalendarVm = new CalendarViewModel(
+            RoomsVm.Rooms,
+            ReservationsVm.Reservations,
+            OpenReservationFromCalendar,
+            OpenEmptyCellFromCalendar);
 
         LoadOrSeed();
+    }
+
+    private void OpenReservationFromCalendar(Reservation r)
+    {
+        SelectedPage = AppPage.Reservations;
+        ReservationsVm.SelectedReservation = r;
+    }
+
+    private void OpenEmptyCellFromCalendar(Room room, DateTimeOffset date)
+    {
+        SelectedPage = AppPage.Reservations;
+        ReservationsVm.OpenWizardFor(room, date);
     }
 
     private void LoadOrSeed()
@@ -95,3 +148,5 @@ public partial class MainWindowViewModel : ObservableObject
         });
     }
 }
+
+public enum AppPage { Dashboard, Rooms, Guests, Reservations, Calendar }

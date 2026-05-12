@@ -8,45 +8,86 @@
         <vm:GuestsViewModel/>
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="*,Auto,*">
+    <Grid>
+        <DockPanel>
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,6">
+                <TextBlock Grid.Column="0" Text="Guests" FontSize="18" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+                <Grid Grid.Column="1" ColumnDefinitions="Auto,*" Margin="16,0" MaxWidth="320" HorizontalAlignment="Stretch">
+                    <Path Grid.Column="0" Classes="icon" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                          Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Text="{Binding SearchText}" Watermark="Search name, email, document…" HorizontalAlignment="Stretch"/>
+                </Grid>
+                <Button Grid.Column="2" Content="+ Add" Command="{Binding OpenAddDrawerCommand}"
+                        Classes="accent"/>
+            </Grid>
 
-        <DockPanel Grid.Column="0" Margin="0,0,8,0">
-            <TextBlock DockPanel.Dock="Top" Text="Guests" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
-            <DataGrid ItemsSource="{Binding Guests}"
-                      SelectedItem="{Binding SelectedGuest}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      GridLinesVisibility="Horizontal"
-                      CanUserResizeColumns="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="100"/>
-                    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="100"/>
-                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="130"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
-                    <DataGridTextColumn Header="Document" Binding="{Binding DocumentNumber}" Width="100"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Panel>
+                <DataGrid ItemsSource="{Binding FilteredGuests}"
+                          SelectedItem="{Binding SelectedGuest}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserSortColumns="True"
+                          GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="140"
+                                            SortMemberPath="FirstName"/>
+                        <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="140"
+                                            SortMemberPath="LastName"/>
+                        <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="160"
+                                            SortMemberPath="Phone"/>
+                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"
+                                            SortMemberPath="Email"/>
+                        <DataGridTextColumn Header="Document" Binding="{Binding DocumentNumber}" Width="140"
+                                            SortMemberPath="DocumentNumber"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock IsVisible="{Binding IsListEmpty}"
+                           Text="No guests match your search."
+                           Foreground="{DynamicResource TextLowBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Panel>
         </DockPanel>
 
-        <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+        <Border IsVisible="{Binding IsDrawerOpen}"
+                HorizontalAlignment="Right"
+                Width="420"
+                Background="{DynamicResource CanvasBrush}"
+                CornerRadius="10"
+                BoxShadow="-8 0 24 0 #80000000">
+            <Border.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.18"/>
+                </Transitions>
+            </Border.Transitions>
+            <DockPanel Margin="16">
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                    <TextBlock Grid.Column="0" Text="Guest details" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextHighBrush}"/>
+                    <Button Grid.Column="1" Command="{Binding CloseDrawerCommand}"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{DynamicResource TextLowBrush}">
+                        <Path Classes="icon" Data="{StaticResource IconCircleX}" Width="16" Height="16"
+                              Stroke="{DynamicResource TextLowBrush}"/>
+                    </Button>
+                </Grid>
 
-        <Border Grid.Column="2" Margin="8,0,0,0" Padding="16" CornerRadius="8"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Guest Details" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right"
+                            Spacing="8" Margin="0,16,0,0">
+                    <Button Content="Add" Command="{Binding AddGuestCommand}" Classes="accent"
+                            IsVisible="{Binding IsAddMode}"/>
+                    <Button Content="Delete" Command="{Binding DeleteGuestCommand}"
+                            IsVisible="{Binding IsEditMode}"/>
+                    <Button Content="Save" Command="{Binding SaveGuestCommand}" Classes="accent"
+                            IsVisible="{Binding IsEditMode}"/>
+                </StackPanel>
 
-                <Border DockPanel.Dock="Top" BorderBrush="#E74C3C" BorderThickness="1"
-                        CornerRadius="4" Padding="8,6" Margin="0,0,0,8"
-                        IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        BorderBrush="#E74C3C" BorderThickness="1" CornerRadius="4"
+                        Padding="8,6" Margin="0,0,0,8">
                     <TextBlock Text="{Binding ErrorMessage}" Foreground="#E74C3C" TextWrapping="Wrap"/>
                 </Border>
-
-                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
-                    <Button Content="Clear" Command="{Binding ClearCommand}"/>
-                    <Button Content="Add New" Command="{Binding AddGuestCommand}" Classes="accent"/>
-                    <Button Content="Save" Command="{Binding SaveGuestCommand}"/>
-                    <Button Content="Delete" Command="{Binding DeleteGuestCommand}"/>
-                </StackPanel>
 
                 <ScrollViewer>
                     <StackPanel Spacing="12">
@@ -54,22 +95,18 @@
                             <TextBlock Text="First Name"/>
                             <TextBox Text="{Binding GuestFirstName}" Watermark="Jan"/>
                         </StackPanel>
-
                         <StackPanel Spacing="4">
                             <TextBlock Text="Last Name"/>
                             <TextBox Text="{Binding GuestLastName}" Watermark="Kowalski"/>
                         </StackPanel>
-
                         <StackPanel Spacing="4">
                             <TextBlock Text="Phone"/>
                             <TextBox Text="{Binding GuestPhone}" Watermark="+48 600 100 200"/>
                         </StackPanel>
-
                         <StackPanel Spacing="4">
                             <TextBlock Text="Email"/>
                             <TextBox Text="{Binding GuestEmail}" Watermark="email@example.com"/>
                         </StackPanel>
-
                         <StackPanel Spacing="4">
                             <TextBlock Text="Document Number"/>
                             <TextBox Text="{Binding GuestDocumentNumber}" Watermark="ABC123456"/>
