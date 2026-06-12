@@ -6,6 +6,7 @@
     <SolidColorBrush x:Key="SubtleSurfaceBrush" Color="#26282C"/>
     <SolidColorBrush x:Key="RowLiftBrush" Color="#33353B"/>
     <SolidColorBrush x:Key="SelectedNavBrush" Color="#2E436E"/>
+    <SolidColorBrush x:Key="SelectedNavHoverBrush" Color="#3A5288"/>
     <SolidColorBrush x:Key="PrimaryActionBrush" Color="#3574F0"/>
     <SolidColorBrush x:Key="AccentBrush" Color="#6C95EB"/>
     <SolidColorBrush x:Key="MintBrush" Color="#7DF0C0"/>

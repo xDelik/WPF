@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WPF.Models;
+using WPF.Services;
 
 namespace WPF.ViewModels;
 
-public record CalendarBar(Reservation Reservation, int StartColumn, int SpanColumns);
+public record CalendarBar(Reservation Reservation, int StartColumn, int SpanColumns, bool LeftClipped, bool RightClipped);
 
 public record CalendarCell(Room Room, DateTimeOffset Date);
 
@@ -21,7 +23,9 @@ public partial class CalendarViewModel : ObservableObject
     private readonly ObservableCollection<Room> _rooms;
     private readonly ObservableCollection<Reservation> _reservations;
     private readonly Action<Reservation> _onBarClick;
-    private readonly Action<Room, DateTimeOffset> _onEmptyCellClick;
+    private readonly Action<Room, DateTimeOffset, DateTimeOffset> _onRangeSelect;
+    private readonly Action _save;
+    private readonly INotificationService _notifier;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WindowLabel))]
@@ -33,17 +37,62 @@ public partial class CalendarViewModel : ObservableObject
         ObservableCollection<Room> rooms,
         ObservableCollection<Reservation> reservations,
         Action<Reservation> onBarClick,
-        Action<Room, DateTimeOffset> onEmptyCellClick)
+        Action<Room, DateTimeOffset, DateTimeOffset> onRangeSelect,
+        Action save,
+        INotificationService notifier)
     {
         _rooms = rooms;
         _reservations = reservations;
         _onBarClick = onBarClick;
-        _onEmptyCellClick = onEmptyCellClick;
+        _onRangeSelect = onRangeSelect;
+        _save = save;
+        _notifier = notifier;
         _rooms.CollectionChanged += (_, _) => OnPropertyChanged(nameof(Rows));
-        _reservations.CollectionChanged += (_, _) => OnPropertyChanged(nameof(Rows));
+        _reservations.CollectionChanged += (_, e) =>
+        {
+            if (e.OldItems is not null)
+                foreach (Reservation r in e.OldItems) r.PropertyChanged -= OnReservationPropertyChanged;
+            if (e.NewItems is not null)
+                foreach (Reservation r in e.NewItems) r.PropertyChanged += OnReservationPropertyChanged;
+            OnPropertyChanged(nameof(Rows));
+        };
     }
 
-    public CalendarViewModel() : this(new(), new(), _ => { }, (_, _) => { }) { }
+    public CalendarViewModel() : this(new(), new(), _ => { }, (_, _, _) => { }, () => { }, new NullNotificationService()) { }
+
+    private void OnReservationPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(Reservation.CheckInDate) or nameof(Reservation.CheckOutDate)
+            or nameof(Reservation.Status) or nameof(Reservation.Room))
+            OnPropertyChanged(nameof(Rows));
+    }
+
+    public bool TryReschedule(Reservation reservation, DateTimeOffset newCheckIn, DateTimeOffset newCheckOut)
+    {
+        if (newCheckOut <= newCheckIn) return false;
+
+        if (HotelRules.HasOverlap(_reservations, reservation.Room, newCheckIn, newCheckOut, excludingId: reservation.Id))
+        {
+            _notifier.Push($"Room {reservation.Room.Number} is already booked for those dates.");
+            return false;
+        }
+
+        if (newCheckIn >= reservation.CheckOutDate)
+        {
+            reservation.CheckOutDate = newCheckOut;
+            reservation.CheckInDate = newCheckIn;
+        }
+        else
+        {
+            reservation.CheckInDate = newCheckIn;
+            reservation.CheckOutDate = newCheckOut;
+        }
+
+        HotelRules.RefreshStatuses(_rooms, _reservations, DateTime.Today);
+        _save();
+        _notifier.Push($"Reservation for {reservation.Guest.FullName} moved to {newCheckIn:dd MMM} → {newCheckOut:dd MMM}.");
+        return true;
+    }
 
     public string WindowLabel
     {
@@ -76,7 +125,7 @@ public partial class CalendarViewModel : ObservableObject
                         var endOffset = (int)(r.CheckOutDate.Date - WindowStart.Date).TotalDays;
                         var endCol = Math.Min(WindowDays, endOffset);
                         var span = Math.Max(1, endCol - startCol);
-                        return new CalendarBar(r, startCol, span);
+                        return new CalendarBar(r, startCol, span, startOffset < 0, endOffset > WindowDays);
                     })
                     .ToList();
 
@@ -96,6 +145,6 @@ public partial class CalendarViewModel : ObservableObject
     [RelayCommand]
     private void OpenReservation(Reservation r) => _onBarClick(r);
 
-    [RelayCommand]
-    private void OpenEmptyCell(CalendarCell cell) => _onEmptyCellClick(cell.Room, cell.Date);
+    public void SelectRange(Room room, DateTimeOffset checkIn, DateTimeOffset checkOut)
+        => _onRangeSelect(room, checkIn, checkOut);
 }

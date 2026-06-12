@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -94,11 +95,31 @@ public partial class RoomsViewModel : FormViewModel
         : base(save, notifier)
     {
         _reservations = reservations;
-        Rooms.CollectionChanged += (_, _) =>
+        Rooms.CollectionChanged += (_, e) =>
         {
+            if (e.OldItems is not null)
+                foreach (Room r in e.OldItems) r.PropertyChanged -= OnRoomPropertyChanged;
+            if (e.NewItems is not null)
+                foreach (Room r in e.NewItems) r.PropertyChanged += OnRoomPropertyChanged;
             OnPropertyChanged(nameof(FilteredRooms));
             OnPropertyChanged(nameof(IsListEmpty));
         };
+    }
+
+    private void OnRoomPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(Room.Status)) return;
+        OnPropertyChanged(nameof(FilteredRooms));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    [RelayCommand]
+    private void MarkCleaned(Room? room)
+    {
+        if (room is null || room.Status != RoomStatus.NeedsCleaning) return;
+        room.Status = RoomStatus.Available;
+        Save();
+        Notify($"Room {room.Number} marked as cleaned.");
     }
 
     [RelayCommand]

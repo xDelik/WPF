@@ -62,7 +62,9 @@ public partial class MainWindowViewModel : ObservableObject
             RoomsVm.Rooms,
             ReservationsVm.Reservations,
             OpenReservationFromCalendar,
-            OpenEmptyCellFromCalendar);
+            OpenEmptyCellFromCalendar,
+            Save,
+            Notifier);
 
         LoadOrSeed();
     }
@@ -73,10 +75,10 @@ public partial class MainWindowViewModel : ObservableObject
         ReservationsVm.SelectedReservation = r;
     }
 
-    private void OpenEmptyCellFromCalendar(Room room, DateTimeOffset date)
+    private void OpenEmptyCellFromCalendar(Room room, DateTimeOffset checkIn, DateTimeOffset checkOut)
     {
         SelectedPage = AppPage.Reservations;
-        ReservationsVm.OpenWizardFor(room, date);
+        ReservationsVm.OpenWizardFor(room, checkIn, checkOut);
     }
 
     private void LoadOrSeed()
@@ -85,6 +87,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (data is null)
         {
             SeedDefaultData();
+            HotelRules.RefreshStatuses(RoomsVm.Rooms, ReservationsVm.Reservations, DateTime.Today);
             Save();
             return;
         }
@@ -92,6 +95,9 @@ public partial class MainWindowViewModel : ObservableObject
         foreach (var r in data.Rooms) RoomsVm.Rooms.Add(r);
         foreach (var g in data.Guests) GuestsVm.Guests.Add(g);
         foreach (var r in data.Reservations) ReservationsVm.Reservations.Add(r);
+
+        if (HotelRules.RefreshStatuses(RoomsVm.Rooms, ReservationsVm.Reservations, DateTime.Today))
+            Save();
     }
 
     private void Save()

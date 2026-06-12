@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -115,12 +116,25 @@ public partial class ReservationsViewModel : FormViewModel
         Guests = guests;
         Reservations = reservations;
         _gotoGuestsPage = gotoGuestsPage;
-        Reservations.CollectionChanged += (_, _) =>
+        Reservations.CollectionChanged += (_, e) =>
         {
+            if (e.OldItems is not null)
+                foreach (Reservation r in e.OldItems) r.PropertyChanged -= OnReservationPropertyChanged;
+            if (e.NewItems is not null)
+                foreach (Reservation r in e.NewItems) r.PropertyChanged += OnReservationPropertyChanged;
             OnPropertyChanged(nameof(FilteredReservations));
             OnPropertyChanged(nameof(IsListEmpty));
         };
     }
+
+    private void OnReservationPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(Reservation.Status)) return;
+        OnPropertyChanged(nameof(FilteredReservations));
+        OnPropertyChanged(nameof(IsListEmpty));
+    }
+
+    private void RefreshStatuses() => HotelRules.RefreshStatuses(Rooms, Reservations, DateTime.Today);
 
     [RelayCommand]
     private void OpenAddDrawer()
@@ -149,14 +163,16 @@ public partial class ReservationsViewModel : FormViewModel
 
     public void AddFromWizard(Reservation r)
     {
+        r.Id = NextId();
         Reservations.Add(r);
+        RefreshStatuses();
         Save();
         Notify($"Reservation for {r.Guest.FullName} created.");
         Wizard = null;
         IsDrawerOpen = false;
     }
 
-    public void OpenWizardFor(Room room, DateTimeOffset checkIn)
+    public void OpenWizardFor(Room room, DateTimeOffset checkIn, DateTimeOffset checkOut)
     {
         SelectedReservation = null;
         var wizard = new ReservationWizardViewModel(
@@ -167,7 +183,7 @@ public partial class ReservationsViewModel : FormViewModel
             () => Save(),
             GetNotifier());
         wizard.CheckIn = checkIn;
-        wizard.CheckOut = checkIn.AddDays(1);
+        wizard.CheckOut = checkOut;
         wizard.SelectedRoomOption = wizard.AvailableRooms
             .FirstOrDefault(o => o.Room.Id == room.Id);
         wizard.Step = WizardStep.GuestAndReview;
@@ -195,6 +211,7 @@ public partial class ReservationsViewModel : FormViewModel
             Status = ReservationStatus,
             Notes = ReservationNotes
         });
+        RefreshStatuses();
         Save();
         Notify($"Reservation for {ReservationGuest!.FullName} added.");
         IsDrawerOpen = false;
@@ -218,6 +235,7 @@ public partial class ReservationsViewModel : FormViewModel
         SelectedReservation.CheckOutDate = ReservationCheckOut;
         SelectedReservation.Status = ReservationStatus;
         SelectedReservation.Notes = ReservationNotes;
+        RefreshStatuses();
         Save();
         Notify($"Reservation for {SelectedReservation.Guest.FullName} updated.");
         IsDrawerOpen = false;
@@ -266,6 +284,7 @@ public partial class ReservationsViewModel : FormViewModel
 
         var display = $"{SelectedReservation.Guest.FullName} · {SelectedReservation.Room.Number}";
         Reservations.Remove(SelectedReservation);
+        RefreshStatuses();
         Save();
         Notify($"Reservation {display} deleted.");
         IsDrawerOpen = false;

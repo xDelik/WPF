@@ -9,7 +9,11 @@ public partial class Room : ObservableObject
     [ObservableProperty] private RoomType _type;
     [ObservableProperty] private int _floor;
     [ObservableProperty] private decimal _pricePerNight;
-    [ObservableProperty] private RoomStatus _status;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NeedsCleaning))]
+    private RoomStatus _status;
+
+    public bool NeedsCleaning => Status == RoomStatus.NeedsCleaning;
 
     public override string ToString() => $"{Number} ({Type})";
 }

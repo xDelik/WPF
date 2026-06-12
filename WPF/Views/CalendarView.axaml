@@ -7,6 +7,21 @@
         <vm:CalendarViewModel/>
     </Design.DataContext>
 
+    <UserControl.Styles>
+        <Style Selector="Border.bar">
+            <Setter Property="Background" Value="{DynamicResource SelectedNavBrush}"/>
+        </Style>
+        <Style Selector="Border.bar:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SelectedNavHoverBrush}"/>
+        </Style>
+        <Style Selector="Border.cell">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Border.cell:pointerover">
+            <Setter Property="Background" Value="{DynamicResource RowLiftBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
     <DockPanel>
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
             <TextBlock Grid.Column="0" Text="{Binding WindowLabel}" FontSize="18" FontWeight="SemiBold"
@@ -70,12 +85,19 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Background="Transparent" BorderThickness="0" Margin="1"
-                                                    Command="{Binding $parent[UserControl].DataContext.OpenEmptyCellCommand}"
-                                                    CommandParameter="{Binding}"/>
+                                            <Border Classes="cell" Margin="1" CornerRadius="3"
+                                                    PointerPressed="OnCellPointerPressed"
+                                                    PointerMoved="OnCellPointerMoved"
+                                                    PointerReleased="OnCellPointerReleased"
+                                                    PointerCaptureLost="OnCellPointerCaptureLost"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                <Border Classes="rangeSelection" Grid.ColumnSpan="14" IsVisible="False"
+                                        IsHitTestVisible="False"
+                                        Background="{DynamicResource SelectedNavBrush}" Opacity="0.55"
+                                        BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
+                                        CornerRadius="3" Margin="1"/>
                                 <ItemsControl ItemsSource="{Binding Bars}" Grid.ColumnSpan="14">
                                     <ItemsControl.Styles>
                                         <Style Selector="ItemsControl > ContentPresenter">
@@ -100,20 +122,22 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Command="{Binding $parent[UserControl].DataContext.OpenReservationCommand}"
-                                                    CommandParameter="{Binding Reservation}"
-                                                    Background="{DynamicResource SelectedNavBrush}"
+                                            <Border Classes="bar"
                                                     BorderBrush="{DynamicResource AccentBrush}"
                                                     BorderThickness="2,0,0,0"
                                                     CornerRadius="3"
                                                     Padding="6,0"
                                                     Margin="1"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
-                                                    Foreground="{DynamicResource TextHighBrush}">
+                                                    Cursor="Hand"
+                                                    PointerPressed="OnBarPointerPressed"
+                                                    PointerMoved="OnBarPointerMoved"
+                                                    PointerReleased="OnBarPointerReleased"
+                                                    PointerCaptureLost="OnBarPointerCaptureLost">
                                                 <TextBlock Text="{Binding Reservation.Guest.FullName}" FontSize="11"
+                                                           Foreground="{DynamicResource TextHighBrush}"
+                                                           VerticalAlignment="Center"
                                                            TextTrimming="CharacterEllipsis"/>
-                                            </Button>
+                                            </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
